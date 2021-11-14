@@ -21,9 +21,14 @@ install(DIRECTORY project/include
 
 #======================================
 
-file(GLOB_RECURSE TEST_FILES project/test/*.cpp)
+set(BUILD_TESTS OFF)
 
-enable_testing()
-add_executable(tests ${TEST_FILES})
-target_include_directories(tests PRIVATE project/include)
-target_link_libraries(tests PRIVATE gtest_main)
+if (${BUILD_TESTS})
+  file(GLOB_RECURSE TEST_FILES project/test/*.cpp)
+
+  enable_testing()
+  add_executable(tests ${TEST_FILES})
+  target_include_directories(tests PRIVATE project/include)
+  target_link_libraries(tests PRIVATE gtest_main)
+
+endif ()
