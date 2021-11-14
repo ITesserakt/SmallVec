@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "SmallVec.h"
+#include "SmallVec.hpp"
 
 int main() {
   testing::InitGoogleTest();

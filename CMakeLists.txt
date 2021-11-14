@@ -16,7 +16,8 @@ FetchContent_MakeAvailable(googletest)
 
 #======================================
 
-set(SMALLVEC_INCLUDE_DIR project/include)
+install(DIRECTORY project/include
+        DESTINATION include)
 
 #======================================
 
