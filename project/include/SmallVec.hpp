@@ -6,6 +6,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <vector>
+#include <exception>
+#include <array>
 
 namespace smallvec {
 template <typename T, std::size_t N>
@@ -35,13 +38,13 @@ private:
   }
 
 public:
-  static constexpr auto size_type = N;
+  static constexpr auto inlineCapacity = N;
 
-  SmallVec(const SmallVec &rhs) : cap(N), len(0) {
+  SmallVec(const SmallVec &rhs) : cap(N), len(0), impl() {
     extendCopying(rhs.begin(), rhs.end());
   }
 
-  SmallVec(SmallVec &&rhs) noexcept : cap(N), len(0) {
+  SmallVec(SmallVec &&rhs) noexcept : cap(N), len(0), impl() {
     extendConsuming(rhs.begin(), rhs.end());
   }
 
@@ -51,25 +54,24 @@ public:
   }
 
   explicit SmallVec() noexcept
-      : impl({.stack = {}}),
+      : impl(),
         cap(N),
         len(0) {}
 
   template <std::size_t M>
   SmallVec(T(&&data)[M])
-      : len(M),
+      : cap(std::max(M, N)),
+        len(0),
         impl() {
-    if constexpr (M <= N) {
-      cap = N;
-      std::swap_ranges(data, data + M, ptr());
-    } else {
-      T *memory = reinterpret_cast<T *>(malloc(M * sizeof(T)));
-      if (memory == nullptr)
-        throw std::runtime_error("Failed to allocate memory in SmallVec");
-      std::swap_ranges(data, data + M, memory);
-      impl.heap = memory;
-      cap = M;
-    }
+    extendConsuming(data, data + M);
+  }
+
+  template <std::size_t M>
+  SmallVec(T (&data)[M])
+      : cap(std::max(M, N)),
+        len(0),
+        impl() {
+    extendCopying(data, data + M);
   }
 
   template <typename... U>
@@ -247,6 +249,9 @@ auto fromContainer(std::array<T, M> data) {
 
 template <typename T, std::size_t N>
 SmallVec(T(&&)[N]) -> SmallVec<T, N>;
+
+template <typename T, std::size_t N>
+SmallVec(T (&)[N]) -> SmallVec<T, N>;
 
 template <typename T, typename... U>
 SmallVec(T, U...) -> SmallVec<T, 1 + sizeof...(U)>;
