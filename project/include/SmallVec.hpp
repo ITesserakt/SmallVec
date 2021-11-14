@@ -25,18 +25,6 @@ private:
   std::size_t cap;
   std::size_t len;
 
-  constexpr iterator ptr() {
-    if (onHeap())
-      return impl.heap;
-    return impl.stack;
-  }
-
-  constexpr const_iterator ptr() const {
-    if (onHeap())
-      return impl.heap;
-    return impl.stack;
-  }
-
 public:
   static constexpr auto inlineCapacity = N;
 
@@ -80,6 +68,18 @@ public:
 
   [[nodiscard]] bool onHeap() const { return cap > N; }
   [[nodiscard]] bool onStack() const { return !onHeap(); }
+
+  constexpr iterator data() {
+    if (onHeap())
+      return impl.heap;
+    return impl.stack;
+  }
+
+  constexpr const_iterator data() const {
+    if (onHeap())
+      return impl.heap;
+    return impl.stack;
+  }
 
   void grow(std::size_t newSize) {
     assert(newSize >= len);
@@ -159,7 +159,7 @@ public:
   void push(U &&value) {
     if (len == cap)
       reserve(1);
-    ptr()[len] = std::forward<U>(value);
+    data()[len] = std::forward<U>(value);
     len++;
   }
 
@@ -167,7 +167,7 @@ public:
   void extendConsuming(Iter begin, Iter end) {
     auto size = std::distance(begin, end);
     reserveExact(size);
-    std::swap_ranges(begin, end, ptr() + len);
+    std::swap_ranges(begin, end, data() + len);
     len += size;
   }
 
@@ -175,7 +175,7 @@ public:
   void extendCopying(Iter begin, Iter end) {
     auto size = std::distance(begin, end);
     reserveExact(size);
-    std::copy(begin, end, ptr() + len);
+    std::copy(begin, end, data() + len);
     len += size;
   }
 
@@ -202,27 +202,27 @@ public:
   }
 
   T &operator[](std::size_t index) {
-    return ptr()[index];
+    return data()[index];
   }
 
   const T &operator[](std::size_t index) const {
-    return ptr()[index];
+    return data()[index];
   }
 
   iterator begin() {
-    return ptr();
+    return data();
   }
 
   const_iterator begin() const {
-    return ptr();
+    return data();
   }
 
   iterator end() {
-    return ptr() + len;
+    return data() + len;
   }
 
   const_iterator end() const {
-    return ptr() + len;
+    return data() + len;
   }
 };
 
