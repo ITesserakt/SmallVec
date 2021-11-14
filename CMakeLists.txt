@@ -21,8 +21,6 @@ install(DIRECTORY project/include
 
 #======================================
 
-set(BUILD_TESTS OFF)
-
 if (${BUILD_TESTS})
   file(GLOB_RECURSE TEST_FILES project/test/*.cpp)
 

@@ -5,10 +5,10 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
-#include <vector>
-#include <exception>
 #include <array>
+#include <cassert>
+#include <exception>
+#include <vector>
 
 namespace smallvec {
 template <typename T, std::size_t N>
@@ -38,7 +38,7 @@ public:
 
   ~SmallVec() {
     if (onHeap())
-      free(impl.heap);
+      delete[] impl.heap;
   }
 
   explicit SmallVec() noexcept
@@ -90,23 +90,12 @@ public:
       // on heap, copy to stack
       auto heapPrt = impl.heap;
       std::swap_ranges(heapPrt, heapPrt + len, std::begin(impl.stack));
-      free(heapPrt);
+      delete[] heapPrt;
     } else if (newSize != cap) {
-      T *memory;
-      if (onStack()) {
-        // on stack, copy to heap
-        memory = reinterpret_cast<T *>(malloc(newSize * sizeof(T)));
-        if (memory == nullptr)
-          throw std::runtime_error("Failed to allocate memory in SmallVec");
-        std::swap_ranges(impl.stack, impl.stack + N, memory);
-      } else {
-        // on heap, just reallocate
-        memory = reinterpret_cast<T *>(realloc(impl.heap, newSize * sizeof(T)));
-        if (memory == nullptr) {
-          free(impl.heap);
-          throw std::runtime_error("Failed to reallocate memory in SmallVec");
-        }
-      }
+      T *memory = new T[newSize];
+      std::swap_ranges(data(), data() + len, memory);
+      if (onHeap())
+        delete[] impl.heap;
       impl.heap = memory;
     }
     cap = newSize;
@@ -138,7 +127,7 @@ public:
     if (N >= len) {
       auto heapPtr = impl.heap;
       std::swap_ranges(heapPtr, heapPtr + len, impl.stack);
-      free(heapPtr);
+      delete[] heapPtr;
       cap = len;
     } else if (cap > len) {
       grow(len);
