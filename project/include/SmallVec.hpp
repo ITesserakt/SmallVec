@@ -244,5 +244,4 @@ SmallVec(T (&)[N]) -> SmallVec<T, N>;
 
 template <typename T, typename... U>
 SmallVec(T, U...) -> SmallVec<T, 1 + sizeof...(U)>;
-
 }// namespace smallvec
